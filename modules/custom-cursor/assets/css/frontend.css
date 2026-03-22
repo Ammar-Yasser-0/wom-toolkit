@@ -1,0 +1,98 @@
+@media (hover: hover) and (pointer: fine) {
+
+    html.wom-custom-cursor,
+    html.wom-custom-cursor body,
+    html.wom-custom-cursor a,
+    html.wom-custom-cursor button,
+    html.wom-custom-cursor [role="button"],
+    html.wom-custom-cursor input[type="submit"],
+    html.wom-custom-cursor input[type="button"] {
+        cursor: none !important;
+    }
+
+    .wom-cursor-dot,
+    .wom-cursor-ring,
+    .wom-cursor-click {
+        position: fixed;
+        top: 0;
+        left: 0;
+        pointer-events: none;
+        z-index: var(--wom-cursor-z-index, 999999);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        will-change: transform, width, height, opacity, background-color, border-color;
+    }
+
+    .wom-cursor-dot {
+        width: var(--wom-cursor-dot-size, 6px);
+        height: var(--wom-cursor-dot-size, 6px);
+        background: var(--wom-cursor-dot-color, #000000);
+        opacity: 1;
+    }
+
+    .wom-cursor-ring {
+        width: var(--wom-cursor-ring-size, 26px);
+        height: var(--wom-cursor-ring-size, 26px);
+        border: var(--wom-cursor-ring-border-width, 1.5px) solid var(--wom-cursor-ring-color, #000000);
+        background: transparent;
+        opacity: 1;
+        transition:
+            width 0.18s ease,
+            height 0.18s ease,
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            opacity 0.18s ease;
+    }
+
+    .wom-cursor-ring.is-hover {
+        width: var(--wom-cursor-hover-size, 42px);
+        height: var(--wom-cursor-hover-size, 42px);
+        background: var(--wom-cursor-hover-bg, rgba(0, 0, 0, 0.06));
+    }
+
+    .wom-cursor-ring.is-clicking {
+        width: var(--wom-cursor-click-size, 22px);
+        height: var(--wom-cursor-click-size, 22px);
+        background: var(--wom-cursor-click-bg, rgba(0, 0, 0, 0.12));
+    }
+
+    .wom-cursor-click {
+        width: var(--wom-cursor-pulse-size, 18px);
+        height: var(--wom-cursor-pulse-size, 18px);
+        border: var(--wom-cursor-pulse-border-width, 1.5px) solid var(--wom-cursor-ring-color, #000000);
+        opacity: 0;
+    }
+
+    .wom-cursor-click.is-animating {
+        animation: womCursorClickPulse 0.4s ease-out forwards;
+    }
+
+    .wom-cursor-dot.is-hidden,
+    .wom-cursor-ring.is-hidden {
+        opacity: 0;
+    }
+
+    @keyframes womCursorClickPulse {
+        0% {
+            opacity: 0.55;
+            width: var(--wom-cursor-pulse-size, 18px);
+            height: var(--wom-cursor-pulse-size, 18px);
+        }
+
+        100% {
+            opacity: 0;
+            width: var(--wom-cursor-pulse-end-size, 52px);
+            height: var(--wom-cursor-pulse-end-size, 52px);
+        }
+    }
+}
+
+@media (hover: none),
+(pointer: coarse) {
+
+    .wom-cursor-dot,
+    .wom-cursor-ring,
+    .wom-cursor-click {
+        display: none !important;
+    }
+}
