@@ -76,7 +76,8 @@ class Module extends \WOMToolkit\Core\Base_Module
         }
 
         if (!$this->is_enabled()) {
-            return;        }
+            return;
+        }
 
         $settings = array();
 
@@ -92,16 +93,16 @@ class Module extends \WOMToolkit\Core\Base_Module
 
         wp_enqueue_script(
             'lenis',
-            'https://cdn.jsdelivr.net/npm/lenis@1.3.8/dist/lenis.min.js',
+            WOM_TOOLKIT_URL . 'modules/smooth-scrolling/assets/vendor/lenis.min.js',
             array(),
-            null,
+            '1.3.8',
             true
         );
 
         wp_enqueue_script(
             'wom-smooth-scroll',
             WOM_TOOLKIT_URL . 'modules/smooth-scrolling/assets/js/frontend.js',
-            array(),
+            array('lenis'),
             WOM_TOOLKIT_VERSION . '.2',
             true
         );
