@@ -1,8 +1,9 @@
 <?php
 namespace WOMToolkit\Modules\scrollbar_styles;
 
-if (!defined('ABSPATH'))
+if (!defined('ABSPATH')) {
     exit;
+}
 
 class Module extends \WOMToolkit\Core\Base_Module
 {
@@ -31,6 +32,12 @@ class Module extends \WOMToolkit\Core\Base_Module
         $settings = \WOMToolkit\Core\Settings::get();
 
         if (isset($_POST['wom_save_scrollbar_styles'])) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have permission to access this page.', 'wom-toolkit'));
+            }
+
+            check_admin_referer('wom_toolkit_save_scrollbar_styles', 'wom_toolkit_scrollbar_styles_nonce');
+
             $settings['scrollbar-styles'] = array(
                 'thumb_color' => isset($_POST['thumb_color']) ? sanitize_hex_color($_POST['thumb_color']) : '#B01F24',
                 'thumb_hover_color' => isset($_POST['thumb_hover_color']) ? sanitize_hex_color($_POST['thumb_hover_color']) : '#273B80',
@@ -38,7 +45,7 @@ class Module extends \WOMToolkit\Core\Base_Module
                 'width' => isset($_POST['width']) ? intval($_POST['width']) : 8,
                 'border_radius' => isset($_POST['border_radius']) ? intval($_POST['border_radius']) : 2,
                 'border_width' => isset($_POST['border_width']) ? intval($_POST['border_width']) : 1,
-                'border_color' => isset($_POST['border_color']) ? sanitize_hex_color($_POST['border_color']) : '#273B80'
+                'border_color' => isset($_POST['border_color']) ? sanitize_hex_color($_POST['border_color']) : '#273B80',
             );
 
             \WOMToolkit\Core\Settings::update($settings);
@@ -47,7 +54,6 @@ class Module extends \WOMToolkit\Core\Base_Module
         }
 
         $module_settings = \WOMToolkit\Core\Settings::get('scrollbar-styles');
-
         $thumb_color = isset($module_settings['thumb_color']) ? $module_settings['thumb_color'] : '#B01F24';
         $thumb_hover_color = isset($module_settings['thumb_hover_color']) ? $module_settings['thumb_hover_color'] : '#273B80';
         $track_background_color = isset($module_settings['track_background_color']) ? $module_settings['track_background_color'] : '#ffffff';
@@ -57,6 +63,7 @@ class Module extends \WOMToolkit\Core\Base_Module
         $border_color = isset($module_settings['border_color']) ? $module_settings['border_color'] : '#273B80';
 
         echo '<form method="post">';
+        wp_nonce_field('wom_toolkit_save_scrollbar_styles', 'wom_toolkit_scrollbar_styles_nonce');
         echo '<table class="form-table">';
 
         echo '<tr><th>Thumb Color</th><td><input type="color" name="thumb_color" value="' . esc_attr($thumb_color) . '"></td></tr>';

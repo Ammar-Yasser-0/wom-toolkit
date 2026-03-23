@@ -1,8 +1,9 @@
 <?php
 namespace WOMToolkit\Modules\login_branding;
 
-if (!defined('ABSPATH'))
+if (!defined('ABSPATH')) {
     exit;
+}
 
 class Module extends \WOMToolkit\Core\Base_Module
 {
@@ -34,6 +35,12 @@ class Module extends \WOMToolkit\Core\Base_Module
         $settings = \WOMToolkit\Core\Settings::get();
 
         if (isset($_POST['wom_save_login_branding'])) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have permission to access this page.', 'wom-toolkit'));
+            }
+
+            check_admin_referer('wom_toolkit_save_login_branding', 'wom_toolkit_login_branding_nonce');
+
             $settings['login-branding'] = array(
                 'logo_url' => isset($_POST['logo_url']) ? esc_url_raw($_POST['logo_url']) : '',
                 'logo_width' => isset($_POST['logo_width']) ? intval($_POST['logo_width']) : 180,
@@ -57,7 +64,7 @@ class Module extends \WOMToolkit\Core\Base_Module
                 'background_color' => isset($_POST['background_color']) ? sanitize_hex_color($_POST['background_color']) : '#f0f0f1',
                 'background_gradient_color_1' => isset($_POST['background_gradient_color_1']) ? sanitize_hex_color($_POST['background_gradient_color_1']) : '#0f172a',
                 'background_gradient_color_2' => isset($_POST['background_gradient_color_2']) ? sanitize_hex_color($_POST['background_gradient_color_2']) : '#1e293b',
-                'background_gradient_degree' => isset($_POST['background_gradient_degree']) ? intval($_POST['background_gradient_degree']) : 135
+                'background_gradient_degree' => isset($_POST['background_gradient_degree']) ? intval($_POST['background_gradient_degree']) : 135,
             );
 
             \WOMToolkit\Core\Settings::update($settings);
@@ -66,7 +73,6 @@ class Module extends \WOMToolkit\Core\Base_Module
         }
 
         $module_settings = \WOMToolkit\Core\Settings::get('login-branding');
-
         $logo_url = isset($module_settings['logo_url']) ? $module_settings['logo_url'] : '';
         $logo_width = isset($module_settings['logo_width']) ? $module_settings['logo_width'] : 180;
         $logo_height = isset($module_settings['logo_height']) ? $module_settings['logo_height'] : 80;
@@ -92,28 +98,18 @@ class Module extends \WOMToolkit\Core\Base_Module
         $background_gradient_degree = isset($module_settings['background_gradient_degree']) ? $module_settings['background_gradient_degree'] : 135;
 
         echo '<form method="post">';
+        wp_nonce_field('wom_toolkit_save_login_branding', 'wom_toolkit_login_branding_nonce');
         echo '<table class="form-table">';
 
         echo '<tr><th colspan="2"><h2>Logo</h2></th></tr>';
-        echo '<tr><th>Logo Image</th><td>';
-        echo '<input type="text" name="logo_url" id="wom_login_logo_url" value="' . esc_attr($logo_url) . '" class="regular-text">';
-        echo ' <button type="button" class="button" id="wom_login_logo_upload">Upload</button>';
+        echo '<tr><th>Logo URL</th><td>';
+        echo '<input type="text" name="logo_url" value="' . esc_attr($logo_url) . '" class="regular-text" id="wom-login-logo-url"> ';
+        echo '<button type="button" class="button" id="wom-login-logo-upload">Upload</button>';
         echo '</td></tr>';
-
         echo '<tr><th>Logo Width</th><td><input type="number" min="1" name="logo_width" value="' . esc_attr($logo_width) . '"> px</td></tr>';
         echo '<tr><th>Logo Height</th><td><input type="number" min="1" name="logo_height" value="' . esc_attr($logo_height) . '"> px</td></tr>';
-
-        echo '<tr><th>Logo Fit</th><td>';
-        echo '<select name="logo_object_fit">';
-        echo '<option value="contain"' . selected($logo_object_fit, 'contain', false) . '>contain</option>';
-        echo '<option value="cover"' . selected($logo_object_fit, 'cover', false) . '>cover</option>';
-        echo '<option value="auto"' . selected($logo_object_fit, 'auto', false) . '>auto</option>';
-        echo '<option value="100% 100%"' . selected($logo_object_fit, '100% 100%', false) . '>stretch (100% 100%)</option>';
-        echo '</select>';
-        echo '<p class="description">Applied as background-size for accurate logo control on the WordPress login page.</p>';
-        echo '</td></tr>';
-
-        echo '<tr><th>Logo Position</th><td><input type="text" name="logo_object_position" value="' . esc_attr($logo_object_position) . '" class="regular-text"><p class="description">Example: center center, top center, left center, 20% 50%</p></td></tr>';
+        echo '<tr><th>Object Fit</th><td><input type="text" name="logo_object_fit" value="' . esc_attr($logo_object_fit) . '" class="regular-text"></td></tr>';
+        echo '<tr><th>Object Position</th><td><input type="text" name="logo_object_position" value="' . esc_attr($logo_object_position) . '" class="regular-text"></td></tr>';
         echo '<tr><th>Logo Bottom Margin</th><td><input type="number" min="0" name="logo_margin_bottom" value="' . esc_attr($logo_margin_bottom) . '"> px</td></tr>';
 
         echo '<tr><th colspan="2"><h2>Form Styling</h2></th></tr>';
@@ -152,7 +148,7 @@ class Module extends \WOMToolkit\Core\Base_Module
             return;
         }
 
-        if (strpos($hook, 'wom-toolkit') === false) {
+        if (strpos($hook, WOM_TOOLKIT_SLUG) === false) {
             return;
         }
 
@@ -174,7 +170,6 @@ class Module extends \WOMToolkit\Core\Base_Module
         }
 
         $settings = \WOMToolkit\Core\Settings::get('login-branding');
-
         $logo_url = isset($settings['logo_url']) ? $settings['logo_url'] : '';
         $logo_width = isset($settings['logo_width']) ? intval($settings['logo_width']) : 180;
         $logo_height = isset($settings['logo_height']) ? intval($settings['logo_height']) : 80;

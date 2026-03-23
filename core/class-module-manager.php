@@ -1,8 +1,9 @@
 <?php
 namespace WOMToolkit\Core;
 
-if (!defined('ABSPATH'))
+if (!defined('ABSPATH')) {
     exit;
+}
 
 class Module_Manager
 {
@@ -18,7 +19,7 @@ class Module_Manager
         return self::$instance;
     }
 
-    public function __construct()
+    private function __construct()
     {
         $this->load_modules();
     }
@@ -31,30 +32,51 @@ class Module_Manager
             return;
         }
 
-        foreach (scandir($modules_path) as $folder) {
+        $folders = scandir($modules_path);
+
+        if (!is_array($folders)) {
+            return;
+        }
+
+        foreach ($folders as $folder) {
             if ($folder === '.' || $folder === '..') {
                 continue;
             }
 
-            $module_file = $modules_path . $folder . '/class-module.php';
+            $module_dir = $modules_path . $folder;
 
-            if (file_exists($module_file)) {
-                require_once $module_file;
-
-                $namespace = str_replace('-', '_', $folder);
-                $class = "\\WOMToolkit\\Modules\\{$namespace}\\Module";
-
-                if (class_exists($class)) {
-                    $instance = new $class();
-
-                    if (method_exists($instance, 'get_id')) {
-                        $this->modules[$instance->get_id()] = $instance;
-                    }
-                    else {
-                        $this->modules[$folder] = $instance;
-                    }
-                }
+            if (!is_dir($module_dir)) {
+                continue;
             }
+
+            $module_file = $module_dir . '/class-module.php';
+
+            if (!file_exists($module_file)) {
+                continue;
+            }
+
+            require_once $module_file;
+
+            $namespace = str_replace('-', '_', sanitize_key($folder));
+            $class = "\\WOMToolkit\\Modules\\{$namespace}\\Module";
+
+            if (!class_exists($class)) {
+                continue;
+            }
+
+            $instance = new $class();
+
+            if (!method_exists($instance, 'get_id')) {
+                continue;
+            }
+
+            $module_id = sanitize_key($instance->get_id());
+
+            if (empty($module_id)) {
+                continue;
+            }
+
+            $this->modules[$module_id] = $instance;
         }
     }
 
@@ -65,6 +87,8 @@ class Module_Manager
 
     public function get_module($module_id)
     {
+        $module_id = sanitize_key($module_id);
+
         return isset($this->modules[$module_id]) ? $this->modules[$module_id] : null;
     }
 }

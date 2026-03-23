@@ -23,7 +23,7 @@ abstract class Base_Module
 
     public function render_settings_page()
     {
-        echo '<p>No settings available for this module yet.</p>';
+        echo '<p>' . esc_html__('No settings available for this module yet.', 'wom-toolkit') . '</p>';
     }
 
     public function is_enabled()
