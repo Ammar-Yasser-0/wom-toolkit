@@ -15,7 +15,6 @@ class Updater
     private $github_branch;
     private $plugin_slug;
     private $cache_key;
-    private $cache_allowed;
 
     public static function instance()
     {
@@ -34,7 +33,6 @@ class Updater
         $this->github_branch = defined('WOM_TOOLKIT_GITHUB_BRANCH') ? WOM_TOOLKIT_GITHUB_BRANCH : 'main';
         $this->plugin_slug = 'wom-toolkit';
         $this->cache_key = 'wom_toolkit_github_release_data';
-        $this->cache_allowed = false;
 
         if (empty($this->github_repo)) {
             return;
@@ -42,40 +40,40 @@ class Updater
 
         add_filter('pre_set_site_transient_update_plugins', array($this, 'check_update'));
         add_filter('plugins_api', array($this, 'plugin_info'), 20, 3);
-        add_filter('upgrader_post_install', array($this, 'after_install'), 10, 3);
+        add_filter('upgrader_source_selection', array($this, 'rename_github_folder'), 10, 4);
         add_action('upgrader_process_complete', array($this, 'purge_cache'), 10, 2);
     }
 
     public function check_update($transient)
     {
-        if (empty($transient->checked) || !is_object($transient)) {
+        if (!is_object($transient) || empty($transient->checked)) {
             return $transient;
         }
 
         $remote = $this->get_remote_data();
 
-        if (!$remote) {
+        if (!$remote || empty($remote['tag_name'])) {
             return $transient;
         }
 
+        $remote_version = ltrim($remote['tag_name'], 'v');
+
         if (
-        isset($remote['tag_name'], $transient->checked[$this->plugin_basename]) &&
-        version_compare($transient->checked[$this->plugin_basename], $remote['tag_name'], '<')
+        isset($transient->checked[$this->plugin_basename]) &&
+        version_compare($transient->checked[$this->plugin_basename], $remote_version, '<')
         ) {
             $package = $this->get_package_url($remote);
 
-            if (!$package) {
-                return $transient;
+            if ($package) {
+                $obj = new \stdClass();
+                $obj->slug = $this->plugin_slug;
+                $obj->plugin = $this->plugin_basename;
+                $obj->new_version = $remote_version;
+                $obj->url = !empty($remote['html_url']) ? $remote['html_url'] : '';
+                $obj->package = $package;
+
+                $transient->response[$this->plugin_basename] = $obj;
             }
-
-            $obj = new \stdClass();
-            $obj->slug = $this->plugin_slug;
-            $obj->plugin = $this->plugin_basename;
-            $obj->new_version = $remote['tag_name'];
-            $obj->url = isset($remote['html_url']) ? $remote['html_url'] : '';
-            $obj->package = $package;
-
-            $transient->response[$this->plugin_basename] = $obj;
         }
 
         return $transient;
@@ -87,7 +85,7 @@ class Updater
             return $result;
         }
 
-        if (!isset($args->slug) || $args->slug !== $this->plugin_slug) {
+        if (empty($args->slug) || $args->slug !== $this->plugin_slug) {
             return $result;
         }
 
@@ -97,61 +95,62 @@ class Updater
             return $result;
         }
 
+        $remote_version = !empty($remote['tag_name']) ? ltrim($remote['tag_name'], 'v') : WOM_TOOLKIT_VERSION;
+
         $obj = new \stdClass();
         $obj->name = 'WOM Toolkit';
         $obj->slug = $this->plugin_slug;
-        $obj->version = isset($remote['tag_name']) ? $remote['tag_name'] : WOM_TOOLKIT_VERSION;
+        $obj->version = $remote_version;
         $obj->author = '<span>Mirox</span>';
-        $obj->homepage = isset($remote['html_url']) ? $remote['html_url'] : '';
+        $obj->homepage = !empty($remote['html_url']) ? $remote['html_url'] : '';
         $obj->download_link = $this->get_package_url($remote);
         $obj->trunk = $this->get_package_url($remote);
         $obj->requires = '5.8';
         $obj->tested = get_bloginfo('version');
         $obj->requires_php = '7.4';
-        $obj->last_updated = isset($remote['published_at']) ? $remote['published_at'] : '';
+        $obj->last_updated = !empty($remote['published_at']) ? $remote['published_at'] : '';
         $obj->sections = array(
             'description' => 'Modular WordPress toolkit for frontend enhancements and admin utilities.',
             'installation' => 'Install the plugin, activate it, then go to WOM Toolkit in the admin menu.',
             'changelog' => $this->get_changelog($remote),
         );
-        $obj->banners = array();
-        $obj->icons = array();
 
         return $obj;
     }
 
-    public function after_install($response, $hook_extra, $result)    {
+    public function rename_github_folder($source, $remote_source, $upgrader, $hook_extra)
+    {
         global $wp_filesystem;
 
         if (
         empty($hook_extra['plugin']) ||
-        $hook_extra['plugin'] !== $this->plugin_basename ||
-        empty($result['destination'])
+        $hook_extra['plugin'] !== $this->plugin_basename
         ) {
-            return $response;
+            return $source;
         }
 
-        $plugin_folder = WP_PLUGIN_DIR . '/' . $this->plugin_slug;
+        $desired = trailingslashit($remote_source) . $this->plugin_slug;
 
-        // Delete old plugin folder if exists
-        if ($wp_filesystem->is_dir($plugin_folder)) {
-            $wp_filesystem->delete($plugin_folder, true);
+        if ($source === $desired) {
+            return $source;
         }
 
-        // Move extracted folder to correct plugin folder
-        $wp_filesystem->move($result['destination'], $plugin_folder);
+        if ($wp_filesystem->exists($desired)) {
+            $wp_filesystem->delete($desired, true);
+        }
 
-        $result['destination'] = $plugin_folder;
+        $renamed = $wp_filesystem->move($source, $desired);
 
-        // Reactivate plugin
-        activate_plugin($this->plugin_basename);
+        if ($renamed) {
+            return $desired;
+        }
 
-        return $response;    }
+        return $source;
+    }
 
     public function purge_cache($upgrader, $options)
     {
         if (
-        $this->cache_allowed === false &&
         isset($options['action'], $options['type']) &&
         $options['action'] === 'update' &&
         $options['type'] === 'plugin'
@@ -164,7 +163,7 @@ class Updater
     {
         $cached = get_transient($this->cache_key);
 
-        if ($cached !== false && $this->cache_allowed) {
+        if ($cached !== false) {
             return $cached;
         }
 
@@ -196,10 +195,6 @@ class Updater
 
         if (empty($data) || !is_array($data)) {
             return false;
-        }
-
-        if (!empty($data['tag_name'])) {
-            $data['tag_name'] = ltrim($data['tag_name'], 'v');
         }
 
         set_transient($this->cache_key, $data, 12 * HOUR_IN_SECONDS);
