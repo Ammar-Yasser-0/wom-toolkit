@@ -18,7 +18,7 @@ define('WOM_TOOLKIT_VERSION', '1.0.0');
 define('WOM_TOOLKIT_SLUG', 'wom-toolkit');
 
 // GitHub updater config
-define('WOM_TOOLKIT_GITHUB_REPO', 'YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME');
+define('WOM_TOOLKIT_GITHUB_REPO', 'Ammar-Yasser-0/wom-toolkit');
 define('WOM_TOOLKIT_GITHUB_BRANCH', 'main');
 
 // Core includes
