@@ -1,7 +1,17 @@
 jQuery(function ($) {
+    let mediaFrame = null;
+
     function openMediaFrame(targetInput) {
-        const frame = wp.media({
-            title: 'Select Image',
+        if (typeof wp === 'undefined' || typeof wp.media === 'undefined') {
+            return;
+        }
+
+        if (mediaFrame) {
+            mediaFrame.off('select');
+        }
+
+        mediaFrame = wp.media({
+            title: 'Select Logo',
             button: {
                 text: 'Use this image'
             },
@@ -11,16 +21,19 @@ jQuery(function ($) {
             }
         });
 
-        frame.on('select', function () {
-            const attachment = frame.state().get('selection').first().toJSON();
-            $(targetInput).val(attachment.url).trigger('change');
+        mediaFrame.on('select', function () {
+            const attachment = mediaFrame.state().get('selection').first().toJSON();
+
+            if (attachment && attachment.url) {
+                $(targetInput).val(attachment.url).trigger('change');
+            }
         });
 
-        frame.open();
+        mediaFrame.open();
     }
 
-    $(document).on('click', '#wom_login_logo_upload', function (e) {
+    $(document).on('click', '#wom-login-logo-upload', function (e) {
         e.preventDefault();
-        openMediaFrame('#wom_login_logo_url');
+        openMediaFrame('#wom-login-logo-url');
     });
 });
