@@ -2,7 +2,7 @@
 /**
  * Plugin Name: WOM Toolkit
  * Description: Internal modular toolkit for WordPress frontend enhancements.
- * Version: 1.0.2
+ * Version: 1.0.4
  * Author: Mirox
  * Text Domain: wom-toolkit
  */
@@ -14,7 +14,7 @@ if (!defined('ABSPATH')) {
 // Constants
 define('WOM_TOOLKIT_PATH', plugin_dir_path(__FILE__));
 define('WOM_TOOLKIT_URL', plugin_dir_url(__FILE__));
-define('WOM_TOOLKIT_VERSION', '1.0.2');
+define('WOM_TOOLKIT_VERSION', '1.0.4');
 define('WOM_TOOLKIT_SLUG', 'wom-toolkit');
 
 // GitHub updater config
