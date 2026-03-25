@@ -1,10 +1,11 @@
 <?php
 /**
- * Plugin Name: WOM Toolkit
+ * Plugin Name: Mirox Toolkit
  * Plugin URI: https://github.com/Ammar-Yasser-0/wom-toolkit
- * Description: Internal modular toolkit for WordPress frontend enhancements.
- * Version: 1.0.5
+ * Description: Advanced modular toolkit for frontend enhancements and admin experience.
+ * Version: 1.0.6
  * Author: Mirox
+ * Author URI: https://ammaryasser.site
  * Text Domain: wom-toolkit
  */
 
@@ -12,11 +13,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-// Constants
+// Core Constants (DO NOT CHANGE SLUG)
 define('WOM_TOOLKIT_PATH', plugin_dir_path(__FILE__));
 define('WOM_TOOLKIT_URL', plugin_dir_url(__FILE__));
-define('WOM_TOOLKIT_VERSION', '1.0.5');
+define('WOM_TOOLKIT_VERSION', '1.0.6');
 define('WOM_TOOLKIT_SLUG', 'wom-toolkit');
+
+// Branding
+define('WOM_TOOLKIT_NAME', 'Mirox Toolkit');
+define('WOM_TOOLKIT_AUTHOR', 'Mirox');
 
 // GitHub updater config
 define('WOM_TOOLKIT_GITHUB_REPO', 'Ammar-Yasser-0/wom-toolkit');
@@ -32,7 +37,7 @@ function wom_toolkit_init()
 }
 wom_toolkit_init();
 
-// Add Settings link in plugins page
+// Settings link
 function wom_toolkit_plugin_action_links($links)
 {
     $settings_url = admin_url('admin.php?page=' . WOM_TOOLKIT_SLUG);

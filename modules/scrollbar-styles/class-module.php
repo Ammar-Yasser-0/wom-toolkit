@@ -50,7 +50,7 @@ class Module extends \WOMToolkit\Core\Base_Module
 
             \WOMToolkit\Core\Settings::update($settings);
 
-            echo '<div class="updated"><p>Saved</p></div>';
+            echo '<div class="wom-toolkit-inline-notice"><p>' . esc_html__('Settings saved.', 'wom-toolkit') . '</p></div>';
         }
 
         $module_settings = \WOMToolkit\Core\Settings::get('scrollbar-styles');
