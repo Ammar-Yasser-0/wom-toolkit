@@ -218,7 +218,7 @@ class Admin
 
             \WOMToolkit\Core\Modules::update($modules);
 
-            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html__('Modules saved.', 'wom-toolkit') . '</p></div>';
+            echo '<div class="wom-toolkit-inline-notice wom-toolkit-inline-notice--success"><p>' . esc_html__('Modules saved.', 'wom-toolkit') . '</p></div>';
         }
 
         $saved_modules = \WOMToolkit\Core\Modules::get_all();
