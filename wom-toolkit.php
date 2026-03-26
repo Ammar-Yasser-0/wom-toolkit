@@ -3,7 +3,7 @@
  * Plugin Name: Mirox Toolkit
  * Plugin URI: https://github.com/Ammar-Yasser-0/wom-toolkit
  * Description: Advanced modular toolkit for frontend enhancements and admin experience.
- * Version: 1.0.6
+ * Version: 1.0.7
  * Author: Mirox
  * Author URI: https://ammaryasser.site
  * Text Domain: wom-toolkit
@@ -16,7 +16,7 @@ if (!defined('ABSPATH')) {
 // Core Constants (DO NOT CHANGE SLUG)
 define('WOM_TOOLKIT_PATH', plugin_dir_path(__FILE__));
 define('WOM_TOOLKIT_URL', plugin_dir_url(__FILE__));
-define('WOM_TOOLKIT_VERSION', '1.0.6');
+define('WOM_TOOLKIT_VERSION', '1.0.7');
 define('WOM_TOOLKIT_SLUG', 'wom-toolkit');
 
 // Branding

@@ -15,6 +15,7 @@ class Updater
     private $github_branch;
     private $plugin_slug;
     private $cache_key;
+    private $release_asset_name;
 
     public static function instance()
     {
@@ -33,6 +34,7 @@ class Updater
         $this->github_branch = defined('WOM_TOOLKIT_GITHUB_BRANCH') ? WOM_TOOLKIT_GITHUB_BRANCH : 'main';
         $this->plugin_slug = 'wom-toolkit';
         $this->cache_key = 'wom_toolkit_github_release_data';
+        $this->release_asset_name = 'wom-toolkit.zip';
 
         if (empty($this->github_repo)) {
             return;
@@ -96,22 +98,23 @@ class Updater
         }
 
         $remote_version = !empty($remote['tag_name']) ? ltrim($remote['tag_name'], 'v') : WOM_TOOLKIT_VERSION;
+        $package = $this->get_package_url($remote);
 
         $obj = new \stdClass();
-        $obj->name = 'WOM Toolkit';
+        $obj->name = 'Mirox Toolkit';
         $obj->slug = $this->plugin_slug;
         $obj->version = $remote_version;
         $obj->author = '<span>Mirox</span>';
         $obj->homepage = !empty($remote['html_url']) ? $remote['html_url'] : '';
-        $obj->download_link = $this->get_package_url($remote);
-        $obj->trunk = $this->get_package_url($remote);
+        $obj->download_link = $package;
+        $obj->trunk = $package;
         $obj->requires = '5.8';
         $obj->tested = get_bloginfo('version');
         $obj->requires_php = '7.4';
         $obj->last_updated = !empty($remote['published_at']) ? $remote['published_at'] : '';
         $obj->sections = array(
             'description' => 'Modular WordPress toolkit for frontend enhancements and admin utilities.',
-            'installation' => 'Install the plugin, activate it, then go to WOM Toolkit in the admin menu.',
+            'installation' => 'Install the plugin, activate it, then go to Mirox Toolkit in the admin menu.',
             'changelog' => $this->get_changelog($remote),
         );
 
@@ -172,7 +175,7 @@ class Updater
         $response = wp_remote_get(
             $url,
             array(
-            'timeout' => 15,
+            'timeout' => 20,
             'headers' => array(
                 'Accept' => 'application/vnd.github+json',
                 'User-Agent' => 'WordPress/' . get_bloginfo('version') . '; ' . home_url('/'),
@@ -204,8 +207,16 @@ class Updater
 
     private function get_package_url($remote)
     {
-        if (!empty($remote['zipball_url'])) {
-            return $remote['zipball_url'];
+        if (!empty($remote['assets']) && is_array($remote['assets'])) {
+            foreach ($remote['assets'] as $asset) {
+                if (
+                !empty($asset['name']) &&
+                $asset['name'] === $this->release_asset_name &&
+                !empty($asset['browser_download_url'])
+                ) {
+                    return $asset['browser_download_url'];
+                }
+            }
         }
 
         return false;
