@@ -32,9 +32,8 @@ class Admin
             'manage_options',
             WOM_TOOLKIT_SLUG,
             array($this, 'render_page'),
-            'dashicons-admin-generic',
-            58
-        );
+            WOM_TOOLKIT_URL . 'assets/admin/images/logotrans.png',
+            58);
     }
 
     public function enqueue_assets($hook)
