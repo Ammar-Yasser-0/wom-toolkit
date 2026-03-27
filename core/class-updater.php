@@ -42,7 +42,6 @@ class Updater
 
         add_filter('pre_set_site_transient_update_plugins', array($this, 'check_update'));
         add_filter('plugins_api', array($this, 'plugin_info'), 20, 3);
-        add_filter('upgrader_source_selection', array($this, 'rename_github_folder'), 10, 4);
         add_action('upgrader_process_complete', array($this, 'purge_cache'), 10, 2);
     }
 
@@ -119,36 +118,6 @@ class Updater
         );
 
         return $obj;
-    }
-
-    public function rename_github_folder($source, $remote_source, $upgrader, $hook_extra)
-    {
-        global $wp_filesystem;
-
-        if (
-        empty($hook_extra['plugin']) ||
-        $hook_extra['plugin'] !== $this->plugin_basename
-        ) {
-            return $source;
-        }
-
-        $desired = trailingslashit($remote_source) . $this->plugin_slug;
-
-        if ($source === $desired) {
-            return $source;
-        }
-
-        if ($wp_filesystem->exists($desired)) {
-            $wp_filesystem->delete($desired, true);
-        }
-
-        $renamed = $wp_filesystem->move($source, $desired);
-
-        if ($renamed) {
-            return $desired;
-        }
-
-        return $source;
     }
 
     public function purge_cache($upgrader, $options)
