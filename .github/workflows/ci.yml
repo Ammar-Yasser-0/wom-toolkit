@@ -113,15 +113,15 @@ jobs:
       - name: Verify extracted filesystem
         run: |
           required_paths=(
-            "extracted/wom-toolkit/wom-toolkit.php"
-            "extracted/wom-toolkit/uninstall.php"
-            "extracted/wom-toolkit/readme.txt"
-            "extracted/wom-toolkit/core/class-plugin.php"
-            "extracted/wom-toolkit/core/class-updater.php"
-            "extracted/wom-toolkit/modules/custom-cursor/class-module.php"
-            "extracted/wom-toolkit/modules/smooth-scrolling/class-module.php"
-            "extracted/wom-toolkit/modules/smooth-scrolling/assets/vendor/lenis.min.js"
-            "extracted/wom-toolkit/assets/admin/admin.css"
+            "wom-toolkit/wom-toolkit.php"
+            "wom-toolkit/uninstall.php"
+            "wom-toolkit/readme.txt"
+            "wom-toolkit/core/class-plugin.php"
+            "wom-toolkit/core/class-updater.php"
+            "wom-toolkit/modules/custom-cursor/class-module.php"
+            "wom-toolkit/modules/smooth-scrolling/class-module.php"
+            "wom-toolkit/modules/smooth-scrolling/assets/vendor/lenis.min.js"
+            "wom-toolkit/assets/admin/admin.css"
           )
           missing=0
           for path in "${required_paths[@]}"; do
@@ -142,7 +142,7 @@ jobs:
       - name: PHP syntax check on extracted plugin
         run: |
           errors=0
-          for file in $(find /tmp/extract-test/extracted/wom-toolkit -name "*.php"); do
+          for file in $(find /tmp/extract-test/wom-toolkit -name "*.php"); do
             if ! php -l "$file" > /dev/null 2>&1; then
               php -l "$file"
               errors=$((errors + 1))
