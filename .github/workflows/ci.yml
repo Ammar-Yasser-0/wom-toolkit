@@ -23,7 +23,7 @@ jobs:
       - name: Run PHP lint
         run: |
           errors=0
-          for file in $(find . -name "*.php" -not -path "./vendor/*" -not -path "./.github/*"); do
+          for file in $(find . -name "*.php" -not -path "./vendor/*" -not -path "./.github/*" -not -path "./tools/*"); do
             if ! php -l "$file" > /dev/null 2>&1; then
               php -l "$file"
               errors=$((errors + 1))
@@ -73,3 +73,89 @@ jobs:
             exit 1
           fi
           echo "All required files present"
+
+  release-build:
+    name: Release Build & Linux Extraction Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Build release ZIP
+        run: python tools/build-release.py
+
+      - name: Verify ZIP entry paths (zero backslashes)
+        run: |
+          python3 -c "
+          import zipfile, sys
+          with zipfile.ZipFile('dist/wom-toolkit.zip') as zf:
+              names = zf.namelist()
+              backslashes = [n for n in names if '\\\\' in n]
+              if backslashes:
+                  print(f'FAIL: {len(backslashes)} entries contain backslashes:')
+                  for e in backslashes:
+                      print(f'  {e}')
+                  sys.exit(1)
+              print(f'OK: {len(names)} entries, zero backslashes')
+          "
+
+      - name: Extract ZIP on Linux
+        run: |
+          mkdir -p /tmp/extract-test
+          cd /tmp/extract-test
+          unzip "$GITHUB_WORKSPACE/dist/wom-toolkit.zip"
+
+      - name: Verify extracted filesystem
+        run: |
+          required_paths=(
+            "extracted/wom-toolkit/wom-toolkit.php"
+            "extracted/wom-toolkit/uninstall.php"
+            "extracted/wom-toolkit/readme.txt"
+            "extracted/wom-toolkit/core/class-plugin.php"
+            "extracted/wom-toolkit/core/class-updater.php"
+            "extracted/wom-toolkit/modules/custom-cursor/class-module.php"
+            "extracted/wom-toolkit/modules/smooth-scrolling/class-module.php"
+            "extracted/wom-toolkit/modules/smooth-scrolling/assets/vendor/lenis.min.js"
+            "extracted/wom-toolkit/assets/admin/admin.css"
+          )
+          missing=0
+          for path in "${required_paths[@]}"; do
+            full="/tmp/extract-test/$path"
+            if [ -f "$full" ]; then
+              echo "  OK: $path"
+            else
+              echo "  FAIL: $path missing"
+              missing=$((missing + 1))
+            fi
+          done
+          if [ $missing -gt 0 ]; then
+            echo "::error::$missing extracted file(s) missing"
+            exit 1
+          fi
+          echo "All required files correctly extracted on Linux"
+
+      - name: PHP syntax check on extracted plugin
+        run: |
+          errors=0
+          for file in $(find /tmp/extract-test/extracted/wom-toolkit -name "*.php"); do
+            if ! php -l "$file" > /dev/null 2>&1; then
+              php -l "$file"
+              errors=$((errors + 1))
+            fi
+          done
+          if [ $errors -gt 0 ]; then
+            echo "::error::$errors extracted PHP file(s) had syntax errors"
+            exit 1
+          fi
+          echo "All extracted PHP files passed syntax check"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wom-toolkit-release
+          path: dist/wom-toolkit.zip

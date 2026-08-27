@@ -3,7 +3,7 @@ Contributors: mirox
 Requires at least: 6.0
 Tested up to: 6.8
 Requires PHP: 7.4
-Stable tag: 1.2.0
+Stable tag: 1.2.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -67,6 +67,12 @@ Yes. Use the `wom_toolkit_cursor_hover_selectors` filter to modify the comma-sep
 6. Scrollbar styles settings
 
 == Changelog ==
+
+= 1.2.1 =
+* Fixed: Release ZIP paths generated on Windows that could extract incorrectly on Linux servers and cause "Plugin file does not exist" errors.
+* Added: Deterministic cross-platform release packaging via tools/build-release.py.
+* Added: Automated ZIP path validation (zero backslash entries enforced).
+* Added: Linux extraction verification in CI workflow.
 
 = 1.2.0 =
 * Security: Added nonce verification and capability checks to Custom Cursor settings
