@@ -12,9 +12,9 @@ class Updater
     private $plugin_file;
     private $plugin_basename;
     private $github_repo;
-    private $github_branch;
     private $plugin_slug;
     private $cache_key;
+    private $failure_cache_key;
     private $release_asset_name;
 
     public static function instance()
@@ -31,9 +31,9 @@ class Updater
         $this->plugin_file = WOM_TOOLKIT_PATH . 'wom-toolkit.php';
         $this->plugin_basename = plugin_basename($this->plugin_file);
         $this->github_repo = defined('WOM_TOOLKIT_GITHUB_REPO') ? WOM_TOOLKIT_GITHUB_REPO : '';
-        $this->github_branch = defined('WOM_TOOLKIT_GITHUB_BRANCH') ? WOM_TOOLKIT_GITHUB_BRANCH : 'main';
         $this->plugin_slug = 'wom-toolkit';
         $this->cache_key = 'wom_toolkit_github_release_data';
+        $this->failure_cache_key = 'wom_toolkit_github_release_failure';
         $this->release_asset_name = 'wom-toolkit.zip';
 
         if (empty($this->github_repo)) {
@@ -99,6 +99,8 @@ class Updater
         $remote_version = !empty($remote['tag_name']) ? ltrim($remote['tag_name'], 'v') : WOM_TOOLKIT_VERSION;
         $package = $this->get_package_url($remote);
 
+        $tested_up_to = defined('WOM_TOOLKIT_TESTED_UP_TO') ? WOM_TOOLKIT_TESTED_UP_TO : get_bloginfo('version');
+
         $obj = new \stdClass();
         $obj->name = 'Mirox Toolkit';
         $obj->slug = $this->plugin_slug;
@@ -107,8 +109,8 @@ class Updater
         $obj->homepage = !empty($remote['html_url']) ? $remote['html_url'] : '';
         $obj->download_link = $package;
         $obj->trunk = $package;
-        $obj->requires = '5.8';
-        $obj->tested = get_bloginfo('version');
+        $obj->requires = '6.0';
+        $obj->tested = $tested_up_to;
         $obj->requires_php = '7.4';
         $obj->last_updated = !empty($remote['published_at']) ? $remote['published_at'] : '';
         $obj->sections = array(
@@ -128,6 +130,7 @@ class Updater
         $options['type'] === 'plugin'
         ) {
             delete_transient($this->cache_key);
+            delete_transient($this->failure_cache_key);
         }
     }
 
@@ -137,6 +140,11 @@ class Updater
 
         if ($cached !== false) {
             return $cached;
+        }
+
+        $failure_cached = get_transient($this->failure_cache_key);
+        if ($failure_cached !== false) {
+            return false;
         }
 
         $url = 'https://api.github.com/repos/' . trim($this->github_repo) . '/releases/latest';
@@ -153,6 +161,7 @@ class Updater
         );
 
         if (is_wp_error($response)) {
+            set_transient($this->failure_cache_key, true, 30 * MINUTE_IN_SECONDS);
             return false;
         }
 
@@ -160,16 +169,19 @@ class Updater
         $body = wp_remote_retrieve_body($response);
 
         if ($code !== 200 || empty($body)) {
+            set_transient($this->failure_cache_key, true, 30 * MINUTE_IN_SECONDS);
             return false;
         }
 
         $data = json_decode($body, true);
 
-        if (empty($data) || !is_array($data)) {
+        if (empty($data) || !is_array($data) || empty($data['tag_name'])) {
+            set_transient($this->failure_cache_key, true, 30 * MINUTE_IN_SECONDS);
             return false;
         }
 
         set_transient($this->cache_key, $data, 12 * HOUR_IN_SECONDS);
+        delete_transient($this->failure_cache_key);
 
         return $data;
     }
@@ -183,7 +195,13 @@ class Updater
                 $asset['name'] === $this->release_asset_name &&
                 !empty($asset['browser_download_url'])
                 ) {
-                    return $asset['browser_download_url'];
+                    $url = $asset['browser_download_url'];
+
+                    if (wp_parse_url($url, PHP_URL_SCHEME) !== 'https') {
+                        return false;
+                    }
+
+                    return $url;
                 }
             }
         }

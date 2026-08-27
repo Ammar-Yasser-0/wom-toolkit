@@ -33,9 +33,14 @@ class Module extends \WOMToolkit\Core\Base_Module
 
     public function render_settings_page()
     {
-        $settings = \WOMToolkit\Core\Settings::get();
-
         if (isset($_POST['wom_save_smooth'])) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have permission to access this page.', 'wom-toolkit'));
+            }
+
+            check_admin_referer('wom_toolkit_save_smooth', 'wom_toolkit_smooth_nonce');
+
+            $settings = \WOMToolkit\Core\Settings::get();
             $settings['smooth-scrolling'] = array(
                 'duration' => isset($_POST['duration']) ? floatval($_POST['duration']) : 1.5,
                 'wheelMultiplier' => isset($_POST['wheelMultiplier']) ? floatval($_POST['wheelMultiplier']) : 1.5,
@@ -58,6 +63,7 @@ class Module extends \WOMToolkit\Core\Base_Module
         $mobileBreakpoint = isset($module_settings['mobileBreakpoint']) ? $module_settings['mobileBreakpoint'] : 992;
 
         echo '<form method="post">';
+        wp_nonce_field('wom_toolkit_save_smooth', 'wom_toolkit_smooth_nonce');
         echo '<table class="form-table">';
         echo '<tr><th>Duration</th><td><input type="number" step="0.1" name="duration" value="' . esc_attr($duration) . '"></td></tr>';
         echo '<tr><th>Wheel Multiplier</th><td><input type="number" step="0.1" name="wheelMultiplier" value="' . esc_attr($wheelMultiplier) . '"></td></tr>';
@@ -95,7 +101,7 @@ class Module extends \WOMToolkit\Core\Base_Module
             'lenis',
             WOM_TOOLKIT_URL . 'modules/smooth-scrolling/assets/vendor/lenis.min.js',
             array(),
-            '1.3.8',
+            '1.3.26',
             true
         );
 

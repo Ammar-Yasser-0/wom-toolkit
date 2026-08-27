@@ -1,0 +1,7 @@
+# Export ignore for release packaging
+.gitattributes export-ignore
+.gitignore export-ignore
+.github/ export-ignore
+.distignore export-ignore
+.editorconfig export-ignore
+*.md export-ignore

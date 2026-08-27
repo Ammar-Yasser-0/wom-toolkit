@@ -3,10 +3,15 @@
  * Plugin Name: Mirox Toolkit
  * Plugin URI: https://github.com/Ammar-Yasser-0/wom-toolkit
  * Description: Advanced modular toolkit for frontend enhancements and admin experience.
- * Version: 1.1.0
+ * Version: 1.2.0
  * Author: Mirox
  * Author URI: https://ammaryasser.site
  * Text Domain: wom-toolkit
+ * Requires at least: 6.0
+ * Requires PHP: 7.4
+ * License: GPL v2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Update URI: https://github.com/Ammar-Yasser-0/wom-toolkit
  */
 
 if (!defined('ABSPATH')) {
@@ -15,14 +20,14 @@ if (!defined('ABSPATH')) {
 
 define('WOM_TOOLKIT_PATH', plugin_dir_path(__FILE__));
 define('WOM_TOOLKIT_URL', plugin_dir_url(__FILE__));
-define('WOM_TOOLKIT_VERSION', '1.1.0');
+define('WOM_TOOLKIT_VERSION', '1.2.0');
 define('WOM_TOOLKIT_SLUG', 'wom-toolkit');
 
 define('WOM_TOOLKIT_NAME', 'Mirox Toolkit');
 define('WOM_TOOLKIT_AUTHOR', 'Mirox');
 
 define('WOM_TOOLKIT_GITHUB_REPO', 'Ammar-Yasser-0/wom-toolkit');
-define('WOM_TOOLKIT_GITHUB_BRANCH', 'main');
+define('WOM_TOOLKIT_TESTED_UP_TO', '6.8');
 
 require_once WOM_TOOLKIT_PATH . 'core/class-plugin.php';
 

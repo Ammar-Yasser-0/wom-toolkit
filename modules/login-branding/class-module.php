@@ -41,29 +41,37 @@ class Module extends \WOMToolkit\Core\Base_Module
 
             check_admin_referer('wom_toolkit_save_login_branding', 'wom_toolkit_login_branding_nonce');
 
+            $valid_object_fit = array('contain', 'cover', 'fill', 'none', 'scale-down');
+            $valid_object_position = array(
+                'center center', 'center top', 'center bottom',
+                'left center', 'left top', 'left bottom',
+                'right center', 'right top', 'right bottom',
+            );
+            $valid_background_type = array('color', 'gradient');
+
             $settings['login-branding'] = array(
                 'logo_url' => isset($_POST['logo_url']) ? esc_url_raw($_POST['logo_url']) : '',
                 'logo_width' => isset($_POST['logo_width']) ? intval($_POST['logo_width']) : 180,
                 'logo_height' => isset($_POST['logo_height']) ? intval($_POST['logo_height']) : 80,
-                'logo_object_fit' => isset($_POST['logo_object_fit']) ? sanitize_text_field($_POST['logo_object_fit']) : 'contain',
-                'logo_object_position' => isset($_POST['logo_object_position']) ? sanitize_text_field($_POST['logo_object_position']) : 'center center',
+                'logo_object_fit' => isset($_POST['logo_object_fit']) && in_array($_POST['logo_object_fit'], $valid_object_fit, true) ? $_POST['logo_object_fit'] : 'contain',
+                'logo_object_position' => isset($_POST['logo_object_position']) && in_array($_POST['logo_object_position'], $valid_object_position, true) ? $_POST['logo_object_position'] : 'center center',
                 'logo_margin_bottom' => isset($_POST['logo_margin_bottom']) ? intval($_POST['logo_margin_bottom']) : 24,
 
-                'form_background' => isset($_POST['form_background']) ? sanitize_text_field($_POST['form_background']) : 'rgba(255,255,255,0.96)',
-                'form_text_color' => isset($_POST['form_text_color']) ? sanitize_hex_color($_POST['form_text_color']) : '#1d2327',
-                'input_background' => isset($_POST['input_background']) ? sanitize_text_field($_POST['input_background']) : '#ffffff',
-                'input_text_color' => isset($_POST['input_text_color']) ? sanitize_hex_color($_POST['input_text_color']) : '#1d2327',
-                'input_border_color' => isset($_POST['input_border_color']) ? sanitize_hex_color($_POST['input_border_color']) : '#8c8f94',
-                'input_focus_color' => isset($_POST['input_focus_color']) ? sanitize_hex_color($_POST['input_focus_color']) : '#2271b1',
-                'button_background' => isset($_POST['button_background']) ? sanitize_hex_color($_POST['button_background']) : '#2271b1',
-                'button_text_color' => isset($_POST['button_text_color']) ? sanitize_hex_color($_POST['button_text_color']) : '#ffffff',
-                'link_color' => isset($_POST['link_color']) ? sanitize_hex_color($_POST['link_color']) : '#2271b1',
-                'link_hover_color' => isset($_POST['link_hover_color']) ? sanitize_hex_color($_POST['link_hover_color']) : '#135e96',
+                'form_background' => isset($_POST['form_background']) ? self::sanitize_css_color($_POST['form_background'], 'rgba(255,255,255,0.96)') : 'rgba(255,255,255,0.96)',
+                'form_text_color' => isset($_POST['form_text_color']) ? sanitize_hex_color($_POST['form_text_color'], '#1d2327') : '#1d2327',
+                'input_background' => isset($_POST['input_background']) ? self::sanitize_css_color($_POST['input_background'], '#ffffff') : '#ffffff',
+                'input_text_color' => isset($_POST['input_text_color']) ? sanitize_hex_color($_POST['input_text_color'], '#1d2327') : '#1d2327',
+                'input_border_color' => isset($_POST['input_border_color']) ? sanitize_hex_color($_POST['input_border_color'], '#8c8f94') : '#8c8f94',
+                'input_focus_color' => isset($_POST['input_focus_color']) ? sanitize_hex_color($_POST['input_focus_color'], '#2271b1') : '#2271b1',
+                'button_background' => isset($_POST['button_background']) ? sanitize_hex_color($_POST['button_background'], '#2271b1') : '#2271b1',
+                'button_text_color' => isset($_POST['button_text_color']) ? sanitize_hex_color($_POST['button_text_color'], '#ffffff') : '#ffffff',
+                'link_color' => isset($_POST['link_color']) ? sanitize_hex_color($_POST['link_color'], '#2271b1') : '#2271b1',
+                'link_hover_color' => isset($_POST['link_hover_color']) ? sanitize_hex_color($_POST['link_hover_color'], '#135e96') : '#135e96',
 
-                'background_type' => isset($_POST['background_type']) ? sanitize_text_field($_POST['background_type']) : 'color',
-                'background_color' => isset($_POST['background_color']) ? sanitize_hex_color($_POST['background_color']) : '#f0f0f1',
-                'background_gradient_color_1' => isset($_POST['background_gradient_color_1']) ? sanitize_hex_color($_POST['background_gradient_color_1']) : '#0f172a',
-                'background_gradient_color_2' => isset($_POST['background_gradient_color_2']) ? sanitize_hex_color($_POST['background_gradient_color_2']) : '#1e293b',
+                'background_type' => isset($_POST['background_type']) && in_array($_POST['background_type'], $valid_background_type, true) ? $_POST['background_type'] : 'color',
+                'background_color' => isset($_POST['background_color']) ? sanitize_hex_color($_POST['background_color'], '#f0f0f1') : '#f0f0f1',
+                'background_gradient_color_1' => isset($_POST['background_gradient_color_1']) ? sanitize_hex_color($_POST['background_gradient_color_1'], '#0f172a') : '#0f172a',
+                'background_gradient_color_2' => isset($_POST['background_gradient_color_2']) ? sanitize_hex_color($_POST['background_gradient_color_2'], '#1e293b') : '#1e293b',
                 'background_gradient_degree' => isset($_POST['background_gradient_degree']) ? intval($_POST['background_gradient_degree']) : 135,
             );
 
@@ -173,25 +181,35 @@ class Module extends \WOMToolkit\Core\Base_Module
         $logo_url = isset($settings['logo_url']) ? $settings['logo_url'] : '';
         $logo_width = isset($settings['logo_width']) ? intval($settings['logo_width']) : 180;
         $logo_height = isset($settings['logo_height']) ? intval($settings['logo_height']) : 80;
-        $logo_object_fit = isset($settings['logo_object_fit']) ? $settings['logo_object_fit'] : 'contain';
-        $logo_object_position = isset($settings['logo_object_position']) ? $settings['logo_object_position'] : 'center center';
+
+        $valid_object_fit = array('contain', 'cover', 'fill', 'none', 'scale-down');
+        $logo_object_fit = isset($settings['logo_object_fit']) && in_array($settings['logo_object_fit'], $valid_object_fit, true) ? $settings['logo_object_fit'] : 'contain';
+
+        $valid_object_position = array(
+            'center center', 'center top', 'center bottom',
+            'left center', 'left top', 'left bottom',
+            'right center', 'right top', 'right bottom',
+        );
+        $logo_object_position = isset($settings['logo_object_position']) && in_array($settings['logo_object_position'], $valid_object_position, true) ? $settings['logo_object_position'] : 'center center';
+
         $logo_margin_bottom = isset($settings['logo_margin_bottom']) ? intval($settings['logo_margin_bottom']) : 24;
 
-        $form_background = isset($settings['form_background']) ? $settings['form_background'] : 'rgba(255,255,255,0.96)';
-        $form_text_color = isset($settings['form_text_color']) ? $settings['form_text_color'] : '#1d2327';
-        $input_background = isset($settings['input_background']) ? $settings['input_background'] : '#ffffff';
-        $input_text_color = isset($settings['input_text_color']) ? $settings['input_text_color'] : '#1d2327';
-        $input_border_color = isset($settings['input_border_color']) ? $settings['input_border_color'] : '#8c8f94';
-        $input_focus_color = isset($settings['input_focus_color']) ? $settings['input_focus_color'] : '#2271b1';
-        $button_background = isset($settings['button_background']) ? $settings['button_background'] : '#2271b1';
-        $button_text_color = isset($settings['button_text_color']) ? $settings['button_text_color'] : '#ffffff';
-        $link_color = isset($settings['link_color']) ? $settings['link_color'] : '#2271b1';
-        $link_hover_color = isset($settings['link_hover_color']) ? $settings['link_hover_color'] : '#135e96';
+        $form_background = isset($settings['form_background']) ? self::sanitize_css_color($settings['form_background'], 'rgba(255,255,255,0.96)') : 'rgba(255,255,255,0.96)';
+        $form_text_color = isset($settings['form_text_color']) ? sanitize_hex_color($settings['form_text_color'], '#1d2327') : '#1d2327';
+        $input_background = isset($settings['input_background']) ? self::sanitize_css_color($settings['input_background'], '#ffffff') : '#ffffff';
+        $input_text_color = isset($settings['input_text_color']) ? sanitize_hex_color($settings['input_text_color'], '#1d2327') : '#1d2327';
+        $input_border_color = isset($settings['input_border_color']) ? sanitize_hex_color($settings['input_border_color'], '#8c8f94') : '#8c8f94';
+        $input_focus_color = isset($settings['input_focus_color']) ? sanitize_hex_color($settings['input_focus_color'], '#2271b1') : '#2271b1';
+        $button_background = isset($settings['button_background']) ? sanitize_hex_color($settings['button_background'], '#2271b1') : '#2271b1';
+        $button_text_color = isset($settings['button_text_color']) ? sanitize_hex_color($settings['button_text_color'], '#ffffff') : '#ffffff';
+        $link_color = isset($settings['link_color']) ? sanitize_hex_color($settings['link_color'], '#2271b1') : '#2271b1';
+        $link_hover_color = isset($settings['link_hover_color']) ? sanitize_hex_color($settings['link_hover_color'], '#135e96') : '#135e96';
 
-        $background_type = isset($settings['background_type']) ? $settings['background_type'] : 'color';
-        $background_color = isset($settings['background_color']) ? $settings['background_color'] : '#f0f0f1';
-        $background_gradient_color_1 = isset($settings['background_gradient_color_1']) ? $settings['background_gradient_color_1'] : '#0f172a';
-        $background_gradient_color_2 = isset($settings['background_gradient_color_2']) ? $settings['background_gradient_color_2'] : '#1e293b';
+        $valid_background_type = array('color', 'gradient');
+        $background_type = isset($settings['background_type']) && in_array($settings['background_type'], $valid_background_type, true) ? $settings['background_type'] : 'color';
+        $background_color = isset($settings['background_color']) ? sanitize_hex_color($settings['background_color'], '#f0f0f1') : '#f0f0f1';
+        $background_gradient_color_1 = isset($settings['background_gradient_color_1']) ? sanitize_hex_color($settings['background_gradient_color_1'], '#0f172a') : '#0f172a';
+        $background_gradient_color_2 = isset($settings['background_gradient_color_2']) ? sanitize_hex_color($settings['background_gradient_color_2'], '#1e293b') : '#1e293b';
         $background_gradient_degree = isset($settings['background_gradient_degree']) ? intval($settings['background_gradient_degree']) : 135;
 
         wp_enqueue_style(
@@ -308,13 +326,44 @@ class Module extends \WOMToolkit\Core\Base_Module
         wp_add_inline_style('wom-login-branding', $custom_css);
     }
 
-    public function login_logo_url()
+    public function login_logo_url($url)
     {
+        if (!$this->is_enabled()) {
+            return $url;
+        }
+
         return home_url('/');
     }
 
-    public function login_logo_title()
+    public function login_logo_title($title)
     {
+        if (!$this->is_enabled()) {
+            return $title;
+        }
+
         return get_bloginfo('name');
+    }
+
+    private static function sanitize_css_color($value, $default = '')
+    {
+        $value = trim(sanitize_text_field($value));
+
+        if ($value === '') {
+            return $default;
+        }
+
+        if (preg_match('/^#([0-9a-fA-F]{3,8})$/', $value)) {
+            return strtolower($value);
+        }
+
+        if (preg_match('/^rgba?\s*\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*(?:,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $value)) {
+            return $value;
+        }
+
+        if (preg_match('/^hsla?\s*\(\s*\d{1,3}\s*,\s*\d{1,3}%\s*,\s*\d{1,3}%\s*(?:,\s*(?:0|1|0?\.\d+))?\s*\)$/i', $value)) {
+            return $value;
+        }
+
+        return $default;
     }
 }

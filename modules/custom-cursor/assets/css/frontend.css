@@ -96,3 +96,22 @@
         display: none !important;
     }
 }
+
+@media (prefers-reduced-motion: reduce) {
+
+    html.wom-custom-cursor,
+    html.wom-custom-cursor body,
+    html.wom-custom-cursor a,
+    html.wom-custom-cursor button,
+    html.wom-custom-cursor [role="button"],
+    html.wom-custom-cursor input[type="submit"],
+    html.wom-custom-cursor input[type="button"] {
+        cursor: auto !important;
+    }
+
+    .wom-cursor-dot,
+    .wom-cursor-ring,
+    .wom-cursor-click {
+        display: none !important;
+    }
+}

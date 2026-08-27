@@ -91,13 +91,13 @@ class Module extends \WOMToolkit\Core\Base_Module
 
         $settings = \WOMToolkit\Core\Settings::get('scrollbar-styles');
 
-        $thumb_color = isset($settings['thumb_color']) ? $settings['thumb_color'] : '#B01F24';
-        $thumb_hover_color = isset($settings['thumb_hover_color']) ? $settings['thumb_hover_color'] : '#273B80';
-        $track_background_color = isset($settings['track_background_color']) ? $settings['track_background_color'] : '#ffffff';
+        $thumb_color = isset($settings['thumb_color']) ? sanitize_hex_color($settings['thumb_color'], '#B01F24') : '#B01F24';
+        $thumb_hover_color = isset($settings['thumb_hover_color']) ? sanitize_hex_color($settings['thumb_hover_color'], '#273B80') : '#273B80';
+        $track_background_color = isset($settings['track_background_color']) ? sanitize_hex_color($settings['track_background_color'], '#ffffff') : '#ffffff';
         $width = isset($settings['width']) ? intval($settings['width']) : 8;
         $border_radius = isset($settings['border_radius']) ? intval($settings['border_radius']) : 2;
         $border_width = isset($settings['border_width']) ? intval($settings['border_width']) : 1;
-        $border_color = isset($settings['border_color']) ? $settings['border_color'] : '#273B80';
+        $border_color = isset($settings['border_color']) ? sanitize_hex_color($settings['border_color'], '#273B80') : '#273B80';
 
         $track_shadow = is_rtl()
             ? 'inset -' . $border_width . 'px 0 0 0 ' . esc_attr($border_color)
@@ -129,6 +129,11 @@ class Module extends \WOMToolkit\Core\Base_Module
 
         ::-webkit-scrollbar-thumb:hover {
             background: ' . esc_attr($thumb_hover_color) . ';
+        }
+
+        * {
+            scrollbar-width: auto;
+            scrollbar-color: ' . esc_attr($thumb_color) . ' ' . esc_attr($track_background_color) . ';
         }';
 
         wp_add_inline_style('wom-scrollbar-styles', $custom_css);

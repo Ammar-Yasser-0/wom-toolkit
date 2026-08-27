@@ -1,5 +1,16 @@
 (function () {
 
+    var lenis = null;
+    var currentConfig = null;
+
+    function getIsMobile(breakpoint) {
+        return window.innerWidth < breakpoint;
+    }
+
+    function getReducedMotion() {
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
     function initLenis() {
         if (typeof Lenis === 'undefined') {
             requestAnimationFrame(initLenis);
@@ -16,53 +27,74 @@
             mobileBreakpoint: raw.mobileBreakpoint !== undefined ? parseInt(raw.mobileBreakpoint, 10) : 992
         };
 
-        var isMobile = window.innerWidth < config.mobileBreakpoint;
-        var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        currentConfig = config;
+        applyLenisState(config);
 
-        var lenis = null;
+        var motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+        motionQuery.addEventListener('change', function () {
+            applyLenisState(currentConfig);
+        });
 
-        if (!isMobile && !reducedMotion) {
-            lenis = new Lenis({
-                autoRaf: true,
-                duration: config.duration,
-                smoothWheel: true,
-                wheelMultiplier: config.wheelMultiplier,
-                touchMultiplier: config.touchMultiplier,
-                infinite: false
-            });
-
-            window.lenis = lenis;
-        }
-
-        document.querySelectorAll('a[href^="#"]').forEach(function (anchor) {
-            anchor.addEventListener('click', function (e) {
-                var href = this.getAttribute('href');
-                if (!href || href === '#') return;
-
-                var target = document.querySelector(href);
-                if (!target) return;
-
-                e.preventDefault();
-
-                if (lenis) {
-                    lenis.scrollTo(target, {
-                        offset: -config.offset,
-                        duration: config.duration
-                    });
-                } else {
-                    var top = target.getBoundingClientRect().top + window.pageYOffset - config.offset;
-
-                    window.scrollTo({
-                        top: top,
-                        behavior: 'smooth'
-                    });
+        var resizeHandler = null;
+        window.addEventListener('resize', function () {
+            if (resizeHandler) {
+                clearTimeout(resizeHandler);
+            }
+            resizeHandler = setTimeout(function () {
+                resizeHandler = null;
+                if (currentConfig) {
+                    applyLenisState(currentConfig);
                 }
-            });
+            }, 250);
         });
     }
 
-    window.addEventListener('load', function () {
+    function applyLenisState(config) {
+        var isMobile = getIsMobile(config.mobileBreakpoint);
+        var reducedMotion = getReducedMotion();
+        var shouldBeActive = !isMobile && !reducedMotion;
+
+        if (shouldBeActive && !lenis) {
+            createLenis(config);
+        } else if (!shouldBeActive && lenis) {
+            destroyLenis();
+        }
+    }
+
+    function createLenis(config) {
+        if (lenis) {
+            return;
+        }
+
+        lenis = new Lenis({
+            autoRaf: true,
+            duration: config.duration,
+            smoothWheel: true,
+            wheelMultiplier: config.wheelMultiplier,
+            touchMultiplier: config.touchMultiplier,
+            infinite: false,
+            anchors: {
+                offset: -config.offset
+            },
+            respectReducedMotion: true,
+            allowNestedScroll: true
+        });
+
+        window.lenis = lenis;
+    }
+
+    function destroyLenis() {
+        if (lenis) {
+            lenis.destroy();
+            lenis = null;
+            window.lenis = null;
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initLenis);
+    } else {
         initLenis();
-    });
+    }
 
 })();

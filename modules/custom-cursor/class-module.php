@@ -28,9 +28,14 @@ class Module extends \WOMToolkit\Core\Base_Module
 
     public function render_settings_page()
     {
-        $settings = \WOMToolkit\Core\Settings::get();
-
         if (isset($_POST['wom_save_custom_cursor'])) {
+            if (!current_user_can('manage_options')) {
+                wp_die(esc_html__('You do not have permission to access this page.', 'wom-toolkit'));
+            }
+
+            check_admin_referer('wom_toolkit_save_custom_cursor', 'wom_toolkit_custom_cursor_nonce');
+
+            $settings = \WOMToolkit\Core\Settings::get();
             $settings['custom-cursor'] = array(
                 'dot_color' => isset($_POST['dot_color']) ? sanitize_hex_color($_POST['dot_color']) : '#000000',
                 'ring_color' => isset($_POST['ring_color']) ? sanitize_hex_color($_POST['ring_color']) : '#000000',
@@ -73,6 +78,7 @@ class Module extends \WOMToolkit\Core\Base_Module
         $ring_speed = isset($module_settings['ring_speed']) ? $module_settings['ring_speed'] : 0.18;
 
         echo '<form method="post">';
+        wp_nonce_field('wom_toolkit_save_custom_cursor', 'wom_toolkit_custom_cursor_nonce');
         echo '<table class="form-table">';
 
         echo '<tr><th>Dot Color</th><td><input type="color" name="dot_color" value="' . esc_attr($dot_color) . '"></td></tr>';
@@ -108,10 +114,10 @@ class Module extends \WOMToolkit\Core\Base_Module
 
         $settings = \WOMToolkit\Core\Settings::get('custom-cursor');
 
-        $dot_color = isset($settings['dot_color']) ? $settings['dot_color'] : '#000000';
-        $ring_color = isset($settings['ring_color']) ? $settings['ring_color'] : '#000000';
-        $hover_bg = isset($settings['hover_bg']) ? $settings['hover_bg'] : 'rgba(0,0,0,0.06)';
-        $click_bg = isset($settings['click_bg']) ? $settings['click_bg'] : 'rgba(0,0,0,0.12)';
+        $dot_color = isset($settings['dot_color']) ? sanitize_hex_color($settings['dot_color'], '#000000') : '#000000';
+        $ring_color = isset($settings['ring_color']) ? sanitize_hex_color($settings['ring_color'], '#000000') : '#000000';
+        $hover_bg = isset($settings['hover_bg']) ? sanitize_text_field($settings['hover_bg']) : 'rgba(0,0,0,0.06)';
+        $click_bg = isset($settings['click_bg']) ? sanitize_text_field($settings['click_bg']) : 'rgba(0,0,0,0.12)';
         $dot_size = isset($settings['dot_size']) ? intval($settings['dot_size']) : 6;
         $ring_size = isset($settings['ring_size']) ? intval($settings['ring_size']) : 26;
         $hover_size = isset($settings['hover_size']) ? intval($settings['hover_size']) : 42;
@@ -170,24 +176,27 @@ class Module extends \WOMToolkit\Core\Base_Module
 
         wp_add_inline_style('wom-custom-cursor', $custom_css);
 
+        $hover_selectors = implode(',', array_filter($default_hover_selectors));
+        $hover_selectors = apply_filters('wom_toolkit_cursor_hover_selectors', $hover_selectors);
+
         $custom_js = '
 window.WOMCustomCursorSettings = {
-    dotColor: ' . json_encode($dot_color) . ',
-    ringColor: ' . json_encode($ring_color) . ',
-    hoverBg: ' . json_encode($hover_bg) . ',
-    clickBg: ' . json_encode($click_bg) . ',
-    dotSize: ' . json_encode($dot_size) . ',
-    ringSize: ' . json_encode($ring_size) . ',
-    hoverSize: ' . json_encode($hover_size) . ',
-    clickSize: ' . json_encode($click_size) . ',
-    ringBorderWidth: ' . json_encode($ring_border_width) . ',
-    pulseSize: ' . json_encode($pulse_size) . ',
-    pulseEndSize: ' . json_encode($pulse_end_size) . ',
-    pulseBorderWidth: ' . json_encode($pulse_border_width) . ',
-    zIndex: ' . json_encode($z_index) . ',
-    dotSpeed: ' . json_encode($dot_speed) . ',
-    ringSpeed: ' . json_encode($ring_speed) . ',
-    hoverSelectors: ' . json_encode(implode(',', array_filter($default_hover_selectors))) . '
+    dotColor: ' . wp_json_encode($dot_color) . ',
+    ringColor: ' . wp_json_encode($ring_color) . ',
+    hoverBg: ' . wp_json_encode($hover_bg) . ',
+    clickBg: ' . wp_json_encode($click_bg) . ',
+    dotSize: ' . wp_json_encode($dot_size) . ',
+    ringSize: ' . wp_json_encode($ring_size) . ',
+    hoverSize: ' . wp_json_encode($hover_size) . ',
+    clickSize: ' . wp_json_encode($click_size) . ',
+    ringBorderWidth: ' . wp_json_encode($ring_border_width) . ',
+    pulseSize: ' . wp_json_encode($pulse_size) . ',
+    pulseEndSize: ' . wp_json_encode($pulse_end_size) . ',
+    pulseBorderWidth: ' . wp_json_encode($pulse_border_width) . ',
+    zIndex: ' . wp_json_encode($z_index) . ',
+    dotSpeed: ' . wp_json_encode($dot_speed) . ',
+    ringSpeed: ' . wp_json_encode($ring_speed) . ',
+    hoverSelectors: ' . wp_json_encode($hover_selectors) . '
 };';
 
         wp_add_inline_script('wom-custom-cursor', $custom_js, 'before');

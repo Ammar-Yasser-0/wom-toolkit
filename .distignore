@@ -1,0 +1,29 @@
+# Development files
+.git
+.gitignore
+.gitattributes
+.github
+.distignore
+.editorconfig
+
+# Documentation (not needed in plugin ZIP)
+*.md
+LICENSE
+
+# IDE files
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Build tools (not needed at runtime)
+node_modules
+vendor
+composer.lock
+package.json
+package-lock.json
